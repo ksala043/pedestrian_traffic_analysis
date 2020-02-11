@@ -6,6 +6,14 @@
 package com.javahelps.sparkdev;
 
 import java.util.*;
+import java.io.EOFException;
+import java.util.concurrent.TimeoutException;
+import org.pcap4j.core.NotOpenException;
+import org.pcap4j.core.PcapHandle;
+import org.pcap4j.core.PcapHandle.TimestampPrecision;
+import org.pcap4j.core.PcapNativeException;
+import org.pcap4j.core.Pcaps;
+import org.pcap4j.packet.Packet;
 
 /**
  *
@@ -18,7 +26,7 @@ public class pcapTools {
 	
     pcapTools() {
         nodeLetter = "Z";
-	sessionNum = "1";
+	sessionNum = "999";
     }
 	
     pcapTools(String nodeLetter, String sessionNum) {
@@ -34,8 +42,8 @@ public class pcapTools {
         this.sessionNum = sessionNum;
     }
     
-    //--------------------------------------------------------------------------
-    public void getUniqueIPs() {
+    //---------------- Currently Working On ---------------------------------
+    public void getUniqueIPs() throws PcapNativeException, NotOpenException {
         String fileName;
         String ans;
         
@@ -44,12 +52,30 @@ public class pcapTools {
             fileName = userInput.nextLine();
             
             System.out.println(fileName); 
-            
             /*
             Add code to open pcap file and output in correct format to txt
             */
             
+            PcapHandle handle;
+            try {
+                handle = Pcaps.openOffline(fileName, TimestampPrecision.NANO);
+            } catch (PcapNativeException e) {
+                handle = Pcaps.openOffline(fileName);
+            }
             
+            //Needs to be in for loop - how do we get the # of packets in pcap file
+                try {
+                    Packet packet = handle.getNextPacketEx();
+                    //System.out.println(handle.getTimestamp());
+                    System.out.println(packet);
+                } catch (TimeoutException e) {
+                } catch (EOFException e) {
+                    System.out.println("EOF");
+                    break;
+                }
+            
+            /* Print out only the source IP addresses of each packet */
+
             System.out.println("Do you want to open another file? y/n");
             ans = userInput.next();
             userInput.nextLine();
