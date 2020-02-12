@@ -16,7 +16,8 @@ public class main {
     public static void main(String[] args) throws PcapNativeException, NotOpenException {
         pcapTools test = new pcapTools();
         /*an object of type pcaptools is created 
-        with the default parameters*/
+        with the default parameters - the method
+        we created to get filenames*/
         test.getUniqueIPs();
     }
 }
