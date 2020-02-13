@@ -7,13 +7,14 @@ package com.javahelps.sparkdev;
 
 import org.pcap4j.core.NotOpenException;
 import org.pcap4j.core.PcapNativeException;
+import java.io.IOException;
 
 /**
  *
  * @author Shaneka Lewis
  */
 public class main {
-    public static void main(String[] args) throws PcapNativeException, NotOpenException {
+    public static void main(String[] args) throws PcapNativeException, NotOpenException, IOException {
         pcapTools test = new pcapTools();
         /*an object of type pcaptools is created 
         with the default parameters - the method

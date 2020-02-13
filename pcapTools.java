@@ -6,6 +6,7 @@
 package com.javahelps.sparkdev;
 
 import java.util.*;
+import java.lang.NullPointerException;
 
 /*Imports needed to use the pcap4j library*/
 import java.io.EOFException;
@@ -16,6 +17,14 @@ import org.pcap4j.core.PcapHandle.TimestampPrecision;
 import org.pcap4j.core.PcapNativeException;
 import org.pcap4j.core.Pcaps;
 import org.pcap4j.packet.Packet;
+import org.pcap4j.packet.*;
+
+/*Imports for filewriter / buffer writer/reader*/
+import java.io.BufferedWriter;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 
 /**
  *
@@ -48,22 +57,21 @@ public class pcapTools {
     }
     
     //---------------- Currently Working On ---------------------------------
-    public void getUniqueIPs() throws PcapNativeException, NotOpenException {
+    public void getUniqueIPs() throws PcapNativeException, NotOpenException, IOException {
         /*Variable to hold the filepath/filename*/
         String fileName;
         /*Variable to hold user answer*/
         String ans;
+        /*ArrayList of string arrays that will hold the desire information*/
+        ArrayList<String[]> collectedIPs = new ArrayList<String[]>();
         
         /*The do while loop ensure that the code within the loop executes at least once*/
         do{
             System.out.println("Enter file name: ");
             /*To get the entire line of input from user*/
             fileName = userInput.nextLine();
-            
+      
             System.out.println(fileName); 
-            /*
-            Add code to open pcap file and output in correct format to txt
-            */
             
             /*The object to open and deal with pcap files*/
             PcapHandle handle;
@@ -77,7 +85,14 @@ public class pcapTools {
             for (int i = 0; i < 100; i++) {
                 try {
                     Packet packet = handle.getNextPacketEx();
-                    //System.out.println(handle.getTimestamp());
+                    /*Add filename(location of IP address) and IP address to collected IPs*/
+                    collectedIPs.add(new String[2]);
+                    collectedIPs.get(i)[0] = fileName;
+                    try {
+                        collectedIPs.get(i)[1] = packet.get(IpV4Packet.class).getHeader().getSrcAddr().toString();
+                    } catch (java.lang.NullPointerException e) {
+                        collectedIPs.get(i)[1] = "-----------";
+                    }
                     System.out.println(packet);
                 } catch (TimeoutException e) {
                 } catch (EOFException e) {
@@ -86,8 +101,19 @@ public class pcapTools {
                 }
             }
             
-            /* Task Print out only the source IP addresses of each packet */
-
+            /*File writer information*/
+            BufferedWriter output = new BufferedWriter(
+                    new FileWriter("node" + nodeLetter + "_session" + sessionNum + ".txt"));
+            
+            for (int i = 0; i < collectedIPs.size(); i++) {
+                //will loop through and save all filenames and IP to text file
+                output.write(collectedIPs.get(i)[0] + " ");
+                output.write(collectedIPs.get(i)[1] + "\n");
+            }
+            
+            output.close();
+            System.out.println("File created");
+            
             System.out.println("Do you want to open another file? y/n");
             ans = userInput.next();
             userInput.nextLine();
@@ -95,16 +121,25 @@ public class pcapTools {
         } while (ans.equals("y"));
     }
     //--------------------------------------------------------------------------
-    public void displayDestinations(){}
+    public void getDestinations(){
+        /*Get unique destinationIPs*/
+    }
+    
+    public void displayDestinations(){
+    }
 
     public void traceIP(String ipAddress) {
 	/*Will read the textfiles produced by earlier methods*/
 	/*Will ask users which files they would like to look through*/
 	/*will note every instance of that address (as source or dest) and the file it was found in*/
-	/*will output to textfile to share*/	
+	/*will output to textfile to share*/
+        /*Format:
+            timestamp NodeLetter   IP address
+        */
     }
 	
     public void getPath(String ipAddress) {
+        //method to sort information from traceIP
 	//Will list the order in which an IP address was found in the nodes
 	//Will have to differentiate between filenames "nodeA_sessionX" - only look charAt(4)
 	//output info		
@@ -121,7 +156,11 @@ public class pcapTools {
         //to do a large comparison at the end
     }
 
-    public void getMostTravelled(){}
+    public void getMostTravelled(){
+    
+    }
 
-    public void displayMostTravelled(){}
+    public void displayMostTravelled(){
+    
+    }
 }
