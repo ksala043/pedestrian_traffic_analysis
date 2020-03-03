@@ -77,22 +77,26 @@ public class pcapTools {
             PcapHandle handle;
             try {
                 handle = Pcaps.openOffline(fileName, TimestampPrecision.NANO);
+                
             } catch (PcapNativeException e) {
                 handle = Pcaps.openOffline(fileName);
             }
             
             //Needs to be in for loop so that it can get all the pcaps in a file
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 1000; i++) {
                 try {
                     Packet packet = handle.getNextPacketEx();
                     /*Add filename(location of IP address) and IP address to collected IPs*/
-                    collectedIPs.add(new String[2]);
+                    collectedIPs.add(new String[3]);
                     collectedIPs.get(i)[0] = fileName;
                     try {
-                        collectedIPs.get(i)[1] = packet.get(IpV4Packet.class).getHeader().getSrcAddr().toString();
+                        collectedIPs.get(i)[1] = packet.get(EthernetPacket.class).getHeader().getSrcAddr().toString();
                     } catch (java.lang.NullPointerException e) {
                         collectedIPs.get(i)[1] = "-----------";
                     }
+                    
+                   collectedIPs.get(i)[2] = "no_timestamp";
+                    
                     System.out.println(packet);
                 } catch (TimeoutException e) {
                 } catch (EOFException e) {
@@ -107,8 +111,65 @@ public class pcapTools {
             
             for (int i = 0; i < collectedIPs.size(); i++) {
                 //will loop through and save all filenames and IP to text file
-                output.write(collectedIPs.get(i)[0] + " ");
-                output.write(collectedIPs.get(i)[1] + "\n");
+                output.write(collectedIPs.get(i)[1] + " ");
+                output.write(nodeLetter + " " + sessionNum + " ");
+                output.write(collectedIPs.get(i)[2] + " ");
+                output.write(collectedIPs.get(i)[0] + "\n");
+            }
+            
+            output.close();
+            System.out.println("File created");   
+            
+            System.out.println("Do you want to open another file? y/n");
+            ans = userInput.next();
+            userInput.nextLine();
+            
+        } while (ans.equals("y"));
+    }
+    //--------------------------------------------------------------------------
+    /*public void getDestinations(){
+        //Get unique destinationIPs
+        
+        String fileName;
+        String ans;
+        ArrayList<String[]> destIPs = new ArrayList<String[]>();
+        
+        do{
+            System.out.println("Enter file name: ");
+            fileName = userInput.nextLine();
+            System.out.println(fileName); 
+            
+            PcapHandle handle;
+            try {
+                handle = Pcaps.openOffline(fileName, TimestampPrecision.NANO);
+                
+            } catch (PcapNativeException e) {
+                handle = Pcaps.openOffline(fileName);
+            }
+            
+            for (int i = 0; i < 100; i++) {
+                try {
+                    Packet packet = handle.getNextPacketEx();
+                    destIPs.add(new String[2]);
+                    destIPs.get(i)[0] = fileName;
+                    try {
+                        destIPs.get(i)[1] = packet.get(IpV4Packet.class).getHeader().getSrcAddr().toString();
+                    } catch (java.lang.NullPointerException e) {
+                        destIPs.get(i)[1] = "-----------";
+                    }
+                    System.out.println(packet);
+                } catch (TimeoutException e) {
+                } catch (EOFException e) {
+                    System.out.println("EOF");
+                    break;
+                }
+            }
+            
+            BufferedWriter output = new BufferedWriter(new FileWriter("dest_node" + nodeLetter + "_session" + sessionNum + ".txt"));
+            
+            for (int i = 0; i < destIPs.size(); i++) {
+                output.write(destIPs.get(i)[0] + " ");
+                output.write(destIPs.get(i)[1] + "\n");
             }
             
             output.close();
@@ -119,11 +180,7 @@ public class pcapTools {
             userInput.nextLine();
             
         } while (ans.equals("y"));
-    }
-    //--------------------------------------------------------------------------
-    public void getDestinations(){
-        /*Get unique destinationIPs*/
-    }
+    }*/
     
     public void displayDestinations(){
     }
