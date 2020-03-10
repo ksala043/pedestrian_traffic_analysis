@@ -250,15 +250,47 @@ public class pcapTools {
     public void displayDestinations(){
     }
 
-    public void traceIP(String ipAddress) {
-	/*Will read the textfiles produced by earlier methods*/
+    public void traceIP(String ipAddress) throws FileNotFoundException {
+	/*Will read the textfiles pr
+    public void traceIP(String ipAdoduced by earlier methods*/
+        Scanner s = new Scanner(new File("/home/kimberly/test.txt"));
+        String check, mac, node, time, name;
+        ArrayList<ArrayList<String>> arr = new ArrayList<ArrayList<String>>();
+        
+        while(s.hasNext()){
+            check = s.next();
+            
+            if(check.equalsIgnoreCase(ipAddress)){
+                ArrayList<String> line = new ArrayList<String>();
+                mac = check;
+                line.add(mac);
+                node = s.next();
+                line.add(node);
+                time = s.next();
+                line.add(time);
+                name = s.next();
+                line.add(name);
+                arr.add(line);
+                
+            }
+            else {
+                s.next();
+                s.next();
+                s.next();
+            }
+        }
+            
+            for(int i = 0; i < arr.size(); i++){
+                System.out.println(arr.get(i));
+        }
+        
+        
 	/*Will ask users which files they would like to look through*/
 	/*will note every instance of that address (as source or dest) and the file it was found in*/
 	/*will output to textfile to share*/
         /*Format:
-            Mac Address | Node Letter | timestamp
+            timestamp NodeLetter   IP address
         */
-        //will read from the allData file generated
     }
 	
     public void getPath(String ipAddress) {
