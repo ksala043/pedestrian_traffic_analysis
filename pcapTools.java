@@ -56,14 +56,77 @@ public class pcapTools {
         this.sessionNum = sessionNum;
     }
     
-    //---------------- Currently Working On ---------------------------------
+    public void getAllSessionData() throws PcapNativeException, NotOpenException, IOException {
+        String fileName;
+        String ans;
+        
+        ArrayList<String[]> collectedIPs = new ArrayList<String[]>();
+        
+        do{
+            System.out.println("Enter file name: ");
+            fileName = userInput.nextLine();
+      
+            System.out.println(fileName); 
+            
+            PcapHandle handle;
+            try {
+                handle = Pcaps.openOffline(fileName, TimestampPrecision.NANO);
+                
+            } catch (PcapNativeException e) {
+                handle = Pcaps.openOffline(fileName);
+            }
+            
+            for (int i = 0; i < 1000; i++) {
+                try {
+                    Packet packet = handle.getNextPacketEx();
+                    collectedIPs.add(new String[3]);
+                    collectedIPs.get(i)[0] = fileName;
+                    try {
+                        collectedIPs.get(i)[1] = packet.get(EthernetPacket.class).getHeader().getSrcAddr().toString();
+                    } catch (java.lang.NullPointerException e) {
+                        collectedIPs.get(i)[1] = "-----------";
+                    }
+                    
+                   collectedIPs.get(i)[2] = "no_timestamp";
+                    
+                    System.out.println(packet);
+                } catch (TimeoutException e) {
+                } catch (EOFException e) {
+                    System.out.println("EOF");
+                    break;
+                }
+            }
+            
+            //SOLVE THE ISSUE OF WRONG NODE LETTER IN MAIN
+            
+            BufferedWriter output = new BufferedWriter(
+                    new FileWriter("node" + nodeLetter + "_session" + sessionNum + ".txt"));
+            
+            for (int i = 0; i < collectedIPs.size(); i++) {
+                output.write(collectedIPs.get(i)[1] + " ");
+                output.write(nodeLetter + " " + sessionNum + " ");
+                output.write(collectedIPs.get(i)[2] + " ");
+                output.write(collectedIPs.get(i)[0] + "\n");
+            }
+            
+            output.close();
+            System.out.println("File created");   
+            
+            System.out.println("Do you want to open another file? y/n");
+            ans = userInput.next();
+            userInput.nextLine();
+            
+        } while (ans.equals("y"));
+    }
+    
     public void getUniqueIPs() throws PcapNativeException, NotOpenException, IOException {
         /*Variable to hold the filepath/filename*/
         String fileName;
         /*Variable to hold user answer*/
         String ans;
         /*ArrayList of string arrays that will hold the desire information*/
-        ArrayList<String[]> collectedIPs = new ArrayList<String[]>();
+        HashMap<String, ArrayList<String>> collectedIPs = new HashMap< String, ArrayList<String>>();
+        ArrayList<String> sourceIPs;
         
         /*The do while loop ensure that the code within the loop executes at least once*/
         do{
@@ -84,18 +147,21 @@ public class pcapTools {
             
             //Needs to be in for loop so that it can get all the pcaps in a file
             for (int i = 0; i < 1000; i++) {
+                //ArrayList that will contain the node letter, time, and file name for some IP
+                sourceIPs = new ArrayList<String>();
                 try {
                     Packet packet = handle.getNextPacketEx();
-                    /*Add filename(location of IP address) and IP address to collected IPs*/
-                    collectedIPs.add(new String[3]);
-                    collectedIPs.get(i)[0] = fileName;
+           
                     try {
-                        collectedIPs.get(i)[1] = packet.get(EthernetPacket.class).getHeader().getSrcAddr().toString();
+                        sourceIPs.add(packet.get(EthernetPacket.class).getHeader().getSrcAddr().toString());
                     } catch (java.lang.NullPointerException e) {
-                        collectedIPs.get(i)[1] = "-----------";
+                        sourceIPs.add("-----------");
                     }
                     
-                   collectedIPs.get(i)[2] = "no_timestamp";
+                    sourceIPs.add(nodeLetter);
+                    sourceIPs.add("no_timestamp");
+                    sourceIPs.add(fileName);
+                    collectedIPs.put(sourceIPs.get(0), sourceIPs);
                     
                     System.out.println(packet);
                 } catch (TimeoutException e) {
@@ -107,14 +173,13 @@ public class pcapTools {
             
             /*File writer information*/
             BufferedWriter output = new BufferedWriter(
-                    new FileWriter("node" + nodeLetter + "_session" + sessionNum + ".txt"));
+                    new FileWriter("uniqueMAC_session" + sessionNum + ".txt"));
             
-            for (int i = 0; i < collectedIPs.size(); i++) {
-                //will loop through and save all filenames and IP to text file
-                output.write(collectedIPs.get(i)[1] + " ");
-                output.write(nodeLetter + " " + sessionNum + " ");
-                output.write(collectedIPs.get(i)[2] + " ");
-                output.write(collectedIPs.get(i)[0] + "\n");
+            for ( String key : collectedIPs.keySet()) {
+                for (int j = 0; j < 4; j++) {
+                    output.write(collectedIPs.get(key).get(j) + " ");
+                }
+                output.write("\n");
             }
             
             output.close();
@@ -127,7 +192,7 @@ public class pcapTools {
         } while (ans.equals("y"));
     }
     //--------------------------------------------------------------------------
-    /*public void getDestinations(){
+    public void getDestinations() throws PcapNativeException, NotOpenException, IOException{
         //Get unique destinationIPs
         
         String fileName;
@@ -165,7 +230,7 @@ public class pcapTools {
                 }
             }
             
-            BufferedWriter output = new BufferedWriter(new FileWriter("dest_node" + nodeLetter + "_session" + sessionNum + ".txt"));
+            BufferedWriter output = new BufferedWriter(new FileWriter("destinations_session" + sessionNum + ".txt"));
             
             for (int i = 0; i < destIPs.size(); i++) {
                 output.write(destIPs.get(i)[0] + " ");
@@ -180,7 +245,7 @@ public class pcapTools {
             userInput.nextLine();
             
         } while (ans.equals("y"));
-    }*/
+    }
     
     public void displayDestinations(){
     }
@@ -191,33 +256,30 @@ public class pcapTools {
 	/*will note every instance of that address (as source or dest) and the file it was found in*/
 	/*will output to textfile to share*/
         /*Format:
-            timestamp NodeLetter   IP address
+            Mac Address | Node Letter | timestamp
         */
+        //will read from the allData file generated
     }
 	
     public void getPath(String ipAddress) {
         //method to sort information from traceIP
 	//Will list the order in which an IP address was found in the nodes
 	//Will have to differentiate between filenames "nodeA_sessionX" - only look charAt(4)
-	//output info		
+	//output info
+        
     }
 
     public void getPopulation(){
         //Will tally the number of unique IP address at each node and then across all nodes
+        //will read the uniqueIPs file generated
+        //will output to console
         //"There were 5 people around node A at noon"
         //"A total of 300 people were gathered by our network at ...."
     }
 
-    public void displayPopulation(){
-        //A nicely formated way to display this information and save it 
-        //to do a large comparison at the end
-    }
-
     public void getMostTravelled(){
-    
+        //Will look at all paths created and calculate the most travelled
+        //will output to console
     }
 
-    public void displayMostTravelled(){
-    
-    }
 }
