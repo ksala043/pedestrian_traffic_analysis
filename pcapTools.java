@@ -22,10 +22,11 @@ import org.pcap4j.packet.*;
 /*Imports for filewriter / buffer writer/reader*/
 import java.io.BufferedWriter;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-
 /**
  *
  * @author Shaneka Lewis
